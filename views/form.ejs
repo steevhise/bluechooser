@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Choose a BlueTooth Device to Connect to</title>
+</head>
+<body>
+<h2>Choose a BlueTooth Device to Connect to</h2>
+
+<form method="POST" enctype="application/x-www-form-urlencoded">
+    <label for="choice">choose one</label>
+    <select name="choice" id="choice">
+    <% devices.forEach(function(device) { %>
+    <option value="<%- device.name %>"><%- device.name %></option>
+
+    <% }); %>
+    </select>
+    <input type="submit" value="connect"\>
+</form>
+
+
+<%= devices %>
+
+</body>
+</html>
