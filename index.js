@@ -31,8 +31,19 @@ router.route('/')
         console.log('POST');
         const data = req.body;
         console.log(data);
-        await blueScan(data.choice);
-        res.locals.message = `Connection to ${data.choice} Complete!`;  // TODO: or catch error/timeout?
+ 	try {	
+        	await blueScan(data.choice); 
+	} catch(e) {
+		console.error(e);
+	}
+
+        res.locals.message = `Connection to ${data.choice} Complete!`;  
+	// TODO: or catch error/timeout?
+	// TODO: in particular, catch for when BT device is not on or in range anymore -- not sure how 
+
+	// use promise.race() to detect a timeout
+
+
         res.render('results');
         res.end();
     });
