@@ -6,6 +6,16 @@ from time import sleep
 import os
 import subprocess
 import signal, shlex
+import asyncio
+
+import display
+
+display.test_func("hello")
+
+# we need to run 3 asynchronous tasks simultaneously:
+#   listening for PTT for mic
+#   listening for shutdown button
+#   displaying on the OLED
 
 sound_cmd = "/usr/bin/rec -c 1 -d equalizer 400 10h -120 | /usr/bin/aplay -f cd -c 1 -t wav"
 # args = shlex.split(sound_cmd)
@@ -21,7 +31,7 @@ def signal_handler(signum, frame):
     # TODO: shutdown the mic stream.
     exit(0)
 
-# catch ALL signals except those tthat can't be caught.
+# catch ALL signals except those that can't be caught.
 catchable_sigs = set(signal.Signals) - {signal.SIGKILL, signal.SIGSTOP}
 my_sigs = {signal.SIGTERM, signal.SIGINT}
 
@@ -30,23 +40,24 @@ for sig in my_sigs:
 
 mic_led = LED(5)
 ptt_button = Button(pin=27, bounce_time=0.1)
-# ptt_button = Button(pin=27)
 shutdown_button = Button(21)
-pulldown = LED(11, initial_value=1)
+pulldown = LED(11, initial_value=1)  # this makes the power LED dim when we shutdown.
 
-# start sound stream from mic to bluetooth, and just let it run
-# first mute the mic 
-# os.system("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 0")
-subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 0", shell=True)
-print('starting mic stream...')
-# proc = subprocess.Popen(args) #this fails cuz args is too split up
-subprocess.run(sound_cmd, shell=True)
-
-# make sure we start with the light off
-mic_led.off()
+async def microphone():
+   # start sound stream from mic to bluetooth, and just let it run
+   # first mute the mic 
+   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 0", shell=True)
+   print('starting mic stream...')
+   subprocess.run(sound_cmd, shell=True, capture_output=True)
+   while True:
+     if ptt_button.is_held:    #  pressed:
+       mic_on()
+   
+   # make sure we start with the light off
+   mic_led.off()
 
 def mic_on():
-   # unmute the mic and start streaming audio to bluetooth
+   # unmute the mic 
    print('dialing!')   # TODO: how to make this only happen once?
    mic_led.on()
    ptt_button.when_released = mic_off
@@ -63,16 +74,28 @@ def mic_off():
    mic_led.off()
 
 
-# main loop 
-while True:
-  if ptt_button.is_held:    #  pressed:
-     mic_on()
+# shutdown manager
+async def shutdown():
+   while True:
+     # shutdown triggers issue of CL shutdown command. TODO: also print to OLED
+     if shutdown_button.is_held:
+       print("shutting down")
+       pulldown.blink(on_time=0.2, off_time=0.2)
+       sleep(5)
+       print(os.system('sudo shutdown now'))
 
-  # shutdown triggers issue of CL shutdown command. also print to OLED
-  if shutdown_button.is_held:
-    print("shutting down")
-    pulldown.blink(on_time=0.2, off_time=0.2)
-    sleep(5)
-    print(os.system('sudo shutdown now'))
 
- 
+# deal with the OLED. can we have a global array hold the lines that the OLED will show?
+async def display():
+   while True:
+      sleep(1)
+
+async def main():
+   await asyncio.gather(
+      shutdown(),
+      microphone(),
+      display.test_func("gather test")
+   )   
+
+asyncio.run(main()) 
+

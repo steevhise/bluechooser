@@ -1,10 +1,3 @@
-# SPDX-FileCopyrightText: 2017 Tony DiCola for Adafruit Industries
-# SPDX-FileCopyrightText: 2017 James DeVito for Adafruit Industries
-# SPDX-License-Identifier: MIT
-
-# This example is for use on (Linux) computers that are using CPython with
-# Adafruit Blinka to support CircuitPython libraries. CircuitPython does
-# not support PIL/pillow (python imaging library)!
 
 import time
 import subprocess
@@ -14,6 +7,7 @@ import busio
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import adafruit_ssd1306
 
+print("setting up the display...")
 
 # Create the I2C interface.
 i2c = busio.I2C(SCL, SDA)
@@ -58,36 +52,30 @@ font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
 bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14)
 i = 0
 
-while True:
+def test_func(text):
+   print("testing, testing!")
+   time.sleep(1)
+   print(text)
+
+
+# while True:
+async def show(text):
+
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
 
-    # Shell scripts for system monitoring from here:
-    # https://unix.stackexchange.com/questions/119126/command-to-display-memory-usage-disk-usage-and-cpu-load
     cmd = "hostname -I | cut -d' ' -f1"
     IP = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    cmd = 'cut -f 1 -d " " /proc/loadavg'
-    CPU = subprocess.check_output(cmd, shell=True).decode("utf-8")
     cmd = 'date +%r'
     clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%s MB  %.2f%%\", $3,$2,$3*100/$2 }'"
-    MemUsage = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    cmd = 'df -h | awk \'$NF=="/"{printf "Disk: %d/%d GB  %s", $3,$2,$5}\''
-    Disk = subprocess.check_output(cmd, shell=True).decode("utf-8")
 
     # Write lines of text.
 
     draw.text((x, top + 0), clock, font=font, fill=255)
+
+    # show the bluetooth device we're connected to.
     # draw.text((x, top + 8), "Connected to: ", font=font, fill=255)
     draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
-    # draw.text((x, top + 16), "CPU load: " + CPU, font=font, fill=255)
-    # draw.text((x, top + 25), Disk, font=font, fill=255)
-
-    # maximize the image - this doesnt seem to work. the cover() function seems at fault.
-    # bbox = image.getbbox()
-    # print(bbox)
-    # croppedImage = image.crop(bbox)
-    # finalImage = ImageOps.cover(croppedImage,(width, height))
 
     # Display image.
     disp.image(image)
