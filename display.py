@@ -1,4 +1,3 @@
-
 import time
 import subprocess
 
@@ -45,11 +44,6 @@ x = 0
 # Load default font.
 # font = ImageFont.load_default()
 
-# Alternatively load a TTF font.  Make sure the .ttf font file is in the
-# same directory as the python script!
-# Some other nice fonts to try: http://www.dafont.com/bitmap.php
-font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
-bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14)
 i = 0
 
 def test_func(text):
@@ -57,10 +51,14 @@ def test_func(text):
    time.sleep(1)
    print(text)
 
+# TODO: make this asynchronous
+def show(text):
 
-# while True:
-async def show(text):
-
+    # load a TTF font.  Make sure the .ttf font file is in the
+    # same directory as the python script!
+    # Some other nice fonts to try: http://www.dafont.com/bitmap.php
+    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
+    bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 18)
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
 
@@ -70,7 +68,23 @@ async def show(text):
     clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
 
     # Write lines of text.
+    print("About to write " + text + " to the OLED...")
 
+    if text is not None:
+       if len(text) < 13:
+          fnt = bigfont
+          print("use the big font")
+       else:
+          fnt = font
+          print("use the small font")
+
+       print(text) 
+       draw.text((x, top + 0), text, font=fnt, fill=255)
+       disp.image(image)
+       disp.show()
+       time.sleep(5)
+    
+    # then the default stuff   
     draw.text((x, top + 0), clock, font=font, fill=255)
 
     # show the bluetooth device we're connected to.
@@ -81,12 +95,11 @@ async def show(text):
     disp.image(image)
     disp.show()
     time.sleep(0.1)
-    i += 1
+    # i += 1
 
-    if i == 30:
-        draw.rectangle((0, 0, width, height), outline=0, fill=0)
-        draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
-        disp.image(image)
-        disp.show()
-        time.sleep(3)
-        i = 0
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+    draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
+    disp.image(image)
+    disp.show()
+    time.sleep(3)
+    #   i = 0
