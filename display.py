@@ -45,15 +45,18 @@ x = 0
 # same directory as the python script!
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
-bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 18)
+bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 17)
 
-# TODO: make this asynchronous
 async def show_default():
 
-  try:
-    print("showing default info on oled....")
-
-    while True:
+  T = asyncio.current_task()
+  L = T.get_loop()
+  print(T,L)
+  print("showing default info on oled....")
+  i = 0
+  while True:
+     try:
+        i += 1;
         # Draw a black filled box to clear the image.
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
     
@@ -63,38 +66,53 @@ async def show_default():
         clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
     
         draw.text((x, top + 0), clock, font=font, fill=255)
-    
+        # we want the clock to actually change, so...
+
         # show the bluetooth device we're connected to.
         # draw.text((x, top + 8), "Connected to: ", font=font, fill=255)
     
         # show our ip address
-        draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
-    
+        draw.text((x, top + 16), "  IP: " + IP, font=font, fill=255)
+
+        print("text1")
         # Display image.
         disp.image(image)
         disp.show()
-        await asyncio.sleep(5)
-   
+        await asyncio.sleep(1)
+        await asyncio.sleep(1)
+        await asyncio.sleep(1)
+        await asyncio.sleep(1)
+        await asyncio.sleep(1)
+  
+        print("text2")
         # now cycle to the next one.
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
         draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
         disp.image(image)
         disp.show()
-        await asyncio.sleep(3)
-  except asyncio.CancelledError:
-        print("we're cancelled!")
-        return
-    
-        
+        time.sleep(3)
+        result = await asyncio.sleep(0, "back to default image task!") # this throws something?
+        print(result)
+     except asyncio.CancelledError as e:   # this is catching when task finishes i think.
+        # except Exception as e:
+        print("we're cancelled!", e)
+        print(asyncio.current_task(), " is the now current task after cancelled Error")
+        print(await asyncio.sleep(5,"done waiting after exception!"))
+        # return
+     except Exception as E:
+         print("-------",E,"-------")
+     else:
+        print("or else!")
+     finally:
+        print(i)
 
-async def show(text):
+def show(text):
     
-    # first cancel the default task so it doesnt write over us.
-    default_task.cancel("back soon, custom message coming in...")
+    print("About to write " + text + " to the OLED...")
+    # first cancel the default task so it doesnt write over us.??
+    # default_task.cancel("back soon, custom message coming in...")
 
     # Write lines of text.
-    print("About to write " + text + " to the OLED...")
-
     if text is not None:
        if len(text) < 13:
           fnt = bigfont
@@ -103,17 +121,15 @@ async def show(text):
           fnt = font
           print("use the small font")
 
+       # first Draw a black filled box to clear the image.
+       draw.rectangle((0, 0, width, height), outline=0, fill=0)
        print(text) 
        draw.text((x, top + 0), text, font=fnt, fill=255)
        disp.image(image)
        disp.show()
-       await asyncio.sleep(5)
+       time.sleep(5)
 
     # now go back to default stuff being displayed - hmm but can we use same name?
-    default_task = asyncio.create_task(show_default, name="oled_default")
-
-# print("starting event loop...")
-# loop = asyncio.new_event_loop()
-# loop.run_forever()
+    # default_task = asyncio.create_task(show_default, name="oled_default")
 
 

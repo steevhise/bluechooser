@@ -7,6 +7,7 @@ import os
 import subprocess
 import signal
 import asyncio
+from pprint import pprint
 
 from display import show, show_default
 
@@ -29,9 +30,8 @@ pulldown = LED(11, initial_value=1)  # this makes the power LED dim when we shut
 def signal_handler(signum, frame):
     print(f'Handling signal {signum} ({signal.Signals(signum).name}).')
 
-    # do whatever...
     mic_led.blink(on_time=0.2, off_time=0.3)
-#    sleep(2)
+    sleep(2)
     # TODO: shutdown the mic stream.
     exit(0)
 
@@ -42,7 +42,6 @@ my_sigs = {signal.SIGTERM, signal.SIGINT}
 for sig in my_sigs:
     signal.signal(sig, signal_handler)  
 
-
 # just to show this is working we flash the mic led.
 mic_led.on()
 sleep(2)
@@ -51,6 +50,7 @@ mic_led.off()
 async def microphone_setup():
    # first mute the mic 
    print('muting  mic ...')
+   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 mute",shell=True)
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 0", shell=True)
    
    # make sure we start with the light off
@@ -64,19 +64,18 @@ async def microphone_setup():
    
 
 def mic_on():
-   # unmute the mic 
    print('dialing!')   # this should only happen once per "dial"
    mic_led.on()
    show("mic is ON")
    ptt_button.when_released = mic_off  # reference to the function (not run the function)
    
    # unmute the microphone 
-   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 70%", shell=True)
-   
+   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 80%", shell=True)
+   print("mic is live!")
 
 def mic_off():
    # mute the mic
-   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 0",shell=True)
+   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 mute",shell=True)
 
    print("mic muted")
    show("mic is OFF")
@@ -96,28 +95,27 @@ async def shutdown():
    print(os.system('sudo shutdown now'))
 
 
-# deal with the OLED. can we have a global array hold the lines that the OLED will show?
-async def start_display():
-   print("starting display")
-   while True:
-      sleep(1)
-
 async def main():
    print("main loop starting... ")
-   # background_tasks = set()
-   # background_tasks.add(asyncio.create_task(show_default()))
-   # background_tasks.add(asyncio.create_task(microphone_setup()))
-   # background_tasks.add(asyncio.create_task(shutdown()))
+   background_tasks = set()
+   background_tasks.add(asyncio.create_task(show_default(), name="show-default"))
+   background_tasks.add(asyncio.create_task(microphone_setup(), name="mic-setup"))
+   background_tasks.add(asyncio.create_task(shutdown_setup(), name="shutdown-setup"))
   
-   L = await asyncio.gather(
-           microphone_setup(),
-           show_default(),
-           shutdown_setup()
-   )
-   print(L)
+   #   L = await asyncio.gather(
+   #           microphone_setup(),
+   #           show_default(),
+   #           shutdown_setup()
+   #   )
+   #   print(L)
+
+   tasks = asyncio.all_tasks()
+   pprint(tasks)
 
 
 # asyncio.run(main()) 
-with asyncio.Runner(debug=True) as runner:
+with asyncio.Runner(debug=False) as runner:
+    loop = runner.get_loop()
+    print("loop is ", loop)
     runner.run(main())
 
