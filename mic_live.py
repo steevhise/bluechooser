@@ -8,7 +8,7 @@ import subprocess
 import signal
 import asyncio
 
-from display import show
+from display import show, show_default
 
 # we need to run 3 asynchronous tasks simultaneously:
 #   listening for PTT for mic
@@ -57,14 +57,10 @@ async def microphone_setup():
    mic_led.off()
    # start sound stream from mic to bluetooth, and just let it run
    print('starting  mic stream ...')
-   stream_task = asyncio.create_task(asyncio.create_subprocess_shell(sound_cmd, shell=True, capture_output=False))
+   stream_task = asyncio.create_task(asyncio.create_subprocess_shell(sound_cmd, stderr=asyncio.subprocess.DEVNULL), name="streamTask" )
    print("... done with microphone setup. stream started...")
    print(stream_task.get_name())
    ptt_button.when_held = mic_on
-   #while True:
-   #   i =+ 1
-      #  if ptt_button.is_held:    
-      #    mic_on()
    
 
 def mic_on():
@@ -87,16 +83,17 @@ def mic_off():
    mic_led.off()
 
 # shutdown manager
-async def shutdown():
+async def shutdown_setup():
    print("initializing shutdown listener")
-   while True:
-     # shutdown triggers issue of CL shutdown command. TODO: also print to OLED
-     if shutdown_button.is_held:
-       print("shutting down")
-       pulldown.blink(on_time=0.2, off_time=0.2)
-       show("shutting down!")
-       sleep(5)
-       print(os.system('sudo shutdown now'))
+   # shutdown triggers issue of CL shutdown command. 
+   shutdown_button.when_held = shutdown
+
+async def shutdown():
+   print("shutting down")
+   pulldown.blink(on_time=0.2, off_time=0.2)
+   show("shutting down!")
+   await asyncio.sleep(5)
+   print(os.system('sudo shutdown now'))
 
 
 # deal with the OLED. can we have a global array hold the lines that the OLED will show?
@@ -107,11 +104,18 @@ async def start_display():
 
 async def main():
    print("main loop starting... ")
-   background_tasks = set()
-   background_tasks.add(asyncio.create_task(microphone_setup()))
-   background_tasks.add(asyncio.create_task(shutdown()))
-   background_tasks.add(asyncio.create_task(start_display()))
-   
+   # background_tasks = set()
+   # background_tasks.add(asyncio.create_task(show_default()))
+   # background_tasks.add(asyncio.create_task(microphone_setup()))
+   # background_tasks.add(asyncio.create_task(shutdown()))
+  
+   L = await asyncio.gather(
+           microphone_setup(),
+           show_default(),
+           shutdown_setup()
+   )
+   print(L)
+
 
 # asyncio.run(main()) 
 with asyncio.Runner(debug=True) as runner:

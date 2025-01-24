@@ -5,6 +5,7 @@ from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import adafruit_ssd1306
+import asyncio
 
 print("setting up the display...")
 
@@ -40,32 +41,56 @@ bottom = height - padding
 # Move left to right keeping track of the current x position for drawing shapes.
 x = 0
 
-
-# Load default font.
-# font = ImageFont.load_default()
-
-i = 0
-
-def test_func(text):
-   print("testing, testing!")
-   time.sleep(1)
-   print(text)
+# load a TTF font.  Make sure the .ttf font file is in the
+# same directory as the python script!
+# Some other nice fonts to try: http://www.dafont.com/bitmap.php
+font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
+bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 18)
 
 # TODO: make this asynchronous
-def show(text):
+async def show_default():
 
-    # load a TTF font.  Make sure the .ttf font file is in the
-    # same directory as the python script!
-    # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
-    bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 18)
-    # Draw a black filled box to clear the image.
-    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+  try:
+    print("showing default info on oled....")
 
-    cmd = "hostname -I | cut -d' ' -f1"
-    IP = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    cmd = 'date +%r'
-    clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
+    while True:
+        # Draw a black filled box to clear the image.
+        draw.rectangle((0, 0, width, height), outline=0, fill=0)
+    
+        cmd = "hostname -I | cut -d' ' -f1"
+        IP = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        cmd = 'date +%r'
+        clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
+    
+        draw.text((x, top + 0), clock, font=font, fill=255)
+    
+        # show the bluetooth device we're connected to.
+        # draw.text((x, top + 8), "Connected to: ", font=font, fill=255)
+    
+        # show our ip address
+        draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
+    
+        # Display image.
+        disp.image(image)
+        disp.show()
+        await asyncio.sleep(5)
+   
+        # now cycle to the next one.
+        draw.rectangle((0, 0, width, height), outline=0, fill=0)
+        draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
+        disp.image(image)
+        disp.show()
+        await asyncio.sleep(3)
+  except asyncio.CancelledError:
+        print("we're cancelled!")
+        return
+    
+        
+
+async def show(text):
+    
+    # first cancel the default task so it doesnt write over us.
+    default_task.cancel("back soon, custom message coming in...")
 
     # Write lines of text.
     print("About to write " + text + " to the OLED...")
@@ -82,24 +107,13 @@ def show(text):
        draw.text((x, top + 0), text, font=fnt, fill=255)
        disp.image(image)
        disp.show()
-       time.sleep(5)
-    
-    # then the default stuff   
-    draw.text((x, top + 0), clock, font=font, fill=255)
+       await asyncio.sleep(5)
 
-    # show the bluetooth device we're connected to.
-    # draw.text((x, top + 8), "Connected to: ", font=font, fill=255)
-    draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
+    # now go back to default stuff being displayed - hmm but can we use same name?
+    default_task = asyncio.create_task(show_default, name="oled_default")
 
-    # Display image.
-    disp.image(image)
-    disp.show()
-    time.sleep(0.1)
-    # i += 1
+# print("starting event loop...")
+# loop = asyncio.new_event_loop()
+# loop.run_forever()
 
-    draw.rectangle((0, 0, width, height), outline=0, fill=0)
-    draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
-    disp.image(image)
-    disp.show()
-    time.sleep(3)
-    #   i = 0
+
