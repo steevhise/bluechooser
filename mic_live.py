@@ -8,13 +8,14 @@ import subprocess
 import signal
 import asyncio
 from pprint import pprint
-
 from display import show, show_default
 
 # we need to run 3 asynchronous tasks simultaneously:
 #   listening for PTT for mic
 #   listening for shutdown button
 #   displaying on the OLED
+
+background_tasks = set()
 
 # but first set up all the stuff
 sound_cmd = "/usr/bin/rec -c 1 -d equalizer 400 10h -120 | /usr/bin/aplay -f cd -c 1 -t wav &"
@@ -30,9 +31,13 @@ pulldown = LED(11, initial_value=1)  # this makes the power LED dim when we shut
 def signal_handler(signum, frame):
     print(f'Handling signal {signum} ({signal.Signals(signum).name}).')
 
-    mic_led.blink(on_time=0.2, off_time=0.3)
+    mic_led.blink(on_time=0.2, off_time=0.3, n=10, background=True)
     sleep(2)
-    # TODO: shutdown the mic stream.
+    #  shutdown the mic stream.
+    micTask = findInSet('streamTask')
+    if micTask != None:
+      print(micTask)
+      micTask.cancel()
     exit(0)
 
 # catch ALL signals except those that can't be caught.
@@ -59,63 +64,55 @@ async def microphone_setup():
    print('starting  mic stream ...')
    stream_task = asyncio.create_task(asyncio.create_subprocess_shell(sound_cmd, stderr=asyncio.subprocess.DEVNULL), name="streamTask" )
    print("... done with microphone setup. stream started...")
-   print(stream_task.get_name())
    ptt_button.when_held = mic_on
+   ptt_button.when_released = mic_off  # reference to the function (not run the function)
+   shutdown_button.when_held = shutdown
    
 
 def mic_on():
    print('dialing!')   # this should only happen once per "dial"
-   mic_led.on()
-   show("mic is ON")
-   ptt_button.when_released = mic_off  # reference to the function (not run the function)
+   mic_led.blink(time_off=.01, time_on=4, n=10, background=True)  # background makes it async
    
    # unmute the microphone 
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 80%", shell=True)
    print("mic is live!")
+   show("mic is ON")
 
 def mic_off():
    # mute the mic
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 mute",shell=True)
-
    print("mic muted")
-   show("mic is OFF")
    mic_led.off()
+   show("mic is OFF")
 
-# shutdown manager
-async def shutdown_setup():
-   print("initializing shutdown listener")
-   # shutdown triggers issue of CL shutdown command. 
-   shutdown_button.when_held = shutdown
-
-async def shutdown():
+def shutdown():
    print("shutting down")
-   pulldown.blink(on_time=0.2, off_time=0.2)
+   pulldown.blink(on_time=0.2, off_time=0.2, background=True)
    show("shutting down!")
-   await asyncio.sleep(5)
+   time.sleep(2)
    print(os.system('sudo shutdown now'))
 
+def findInSet(name="show-default"):
+   for task in background_tasks:
+       if task.get_name() == name:
+           return task
+   
+   return None
 
 async def main():
-   print("main loop starting... ")
-   background_tasks = set()
-   background_tasks.add(asyncio.create_task(show_default(), name="show-default"))
-   background_tasks.add(asyncio.create_task(microphone_setup(), name="mic-setup"))
-   background_tasks.add(asyncio.create_task(shutdown_setup(), name="shutdown-setup"))
+   # The OLED screen has to be async.
+   oled_task = asyncio.create_task(show_default(), name="show-default")
   
-   #   L = await asyncio.gather(
-   #           microphone_setup(),
-   #           show_default(),
-   #           shutdown_setup()
-   #   )
-   #   print(L)
+   # run other stuff outside the event loop
+   await microphone_setup()
 
+   await asyncio.sleep(1)
    tasks = asyncio.all_tasks()
-   pprint(tasks)
+   # pprint(tasks)
 
 
 # asyncio.run(main()) 
 with asyncio.Runner(debug=False) as runner:
     loop = runner.get_loop()
-    print("loop is ", loop)
     runner.run(main())
 
