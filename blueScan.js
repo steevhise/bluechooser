@@ -1,7 +1,7 @@
 const {createBluetooth} = require('node-ble')
 const {bluetooth} = createBluetooth()
 const Debug = require('debug')('bluetooth');
-const defaultTarget = 'Membrillo';
+// const defaultTarget = 'Membrillo';
 
 const blueScan = async (target = '') => {
 
@@ -14,13 +14,14 @@ const blueScan = async (target = '') => {
 
     // otherwise, we ARE discovering...
     const devices = await adapter.devices();
+    let device= {};
 
     for (const d of devices) {
-        const device = await adapter.getDevice(d);
+        device = await adapter.getDevice(d);
         const name = await device.getAlias();
         const paired = await device.isPaired();
         const connected = await device.isConnected();
-        // Debug(d,name);
+        Debug(d,name);
         deviceInfo.push({
             id: d,
             name,
@@ -29,23 +30,34 @@ const blueScan = async (target = '') => {
         });
 
         if((target) && (name === target)) {
-            if (!await device.isPaired())
-                await device.pair();
-            Debug('paired with %s', target);
-            if (!await device.isConnected())
-                await device.connect();   // TODO: catch error?
-            Debug('connected to %s', name)
-            console.log('connected to ' + name);
+            try {
+                if (!await device.isPaired())
+                    await device.pair();
+                Debug('paired with %s', target);
+                if (!await device.isConnected())
+                    await device.connect();   // TODO: catch error?
+                    Debug('connected to %s', name);
+            } catch(e) {
+                console.log('something wrong with BT connect', e.text);
+                return 'timeout';
+            }
+
             break;
         }
     }
 
     // Debug('devices: %o', deviceInfo);
     await adapter.stopDiscovery()
+    //console.log('dev', device.device);
     return deviceInfo;
 }
 
+const sleep = async (time) => {
+    return new Promise((resolve) => setTimeout(() => { return resolve('times up!')}, time));
+}
+
 exports.blueScan = blueScan;
+exports.sleep = sleep;
 
  // how you'd use this...
 /*

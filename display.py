@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import adafruit_ssd1306
 import asyncio
 from sys import audit, addaudithook
+from discover import discover
 
 print("setting up the display...")
 stop = False  # this is to make an event stop a while loop
@@ -65,7 +66,7 @@ def show_resume(event, waitseconds):
 async def show_default():
 
   i = 0
- 
+
   addaudithook(show_wait)
   addaudithook(show_resume)
 
@@ -83,19 +84,23 @@ async def show_default():
    
         # give lots of chances for other process to update.
         await asyncio.sleep(0)
+
         cmd = "hostname -I | cut -d' ' -f1"
         IP = subprocess.check_output(cmd, shell=True).decode("utf-8")
         cmd = 'date +%r'
         clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
-   
         print(clock)
+        btDevices = await discover()
+
+        # TODO: then find the one we're connected to, if any.
+
         draw.text((x, top + 0), clock, font=font, fill=255)
 
         # show the bluetooth device we're connected to.
-        # draw.text((x, top + 8), "Connected to: ", font=font, fill=255)
-    
+        # draw.text((x, top + 8), "BT device: " + device, font=font, fill=255)
+
         # show our ip address
-        draw.text((x, top + 16), "  IP: " + IP, font=font, fill=255)
+        draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
 
         await asyncio.sleep(0)
         # Display image.
@@ -118,17 +123,15 @@ async def show_default():
         disp.image(image)
         await asyncio.sleep(0)
         disp.show()
-        await asyncio.sleep(3)
-        # time.sleep(3) 
-        result = await asyncio.sleep(4, "back to default image task!") 
-        print(result)
+        time.sleep(3)
+        result = await asyncio.sleep(0, "back to default image task!")
+        # print(result)
      except asyncio.CancelledError as e:   # this is catching when task finishes i think.
         print(e)
      finally:
         print(i)
 
 def show(text):
-    
     wait_time = 0
     # Write lines of text.
     if text is not None:
