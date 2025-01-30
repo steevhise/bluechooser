@@ -18,8 +18,8 @@ from display import show, show_default
 background_tasks = set()
 
 # but first set up all the stuff
-sound_cmd = "/usr/bin/rec -c 1 -d equalizer 400 10h -120 sinc -4k | /usr/bin/aplay -f cd -c 1 -t wav &"
-sound_cmd = "/usr/bin/rec -c 1 -d sinc 1k-4k | /usr/bin/aplay -f cd -c 1 -t wav &"
+sound_cmd = "/usr/bin/rec -c 1 -r 8000 -b 8 -d hilbert equalizer 400 50h -120 sinc 500-3k vol 1 db | /usr/bin/aplay -c 1 &"
+# sound_cmd = "/usr/bin/rec -c 1 -d sinc 1k-4k | /usr/bin/aplay -f cd -c 1 -t wav &"
 print(sound_cmd)
 
 # set up all the pins
@@ -67,7 +67,7 @@ def mic_on():
    
    # unmute the microphone 
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 on",shell=True)
-   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 28", shell=True)
+   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 25", shell=True)
    print("mic is live!")
    show("mic is ON")
    # audit('showresume')
