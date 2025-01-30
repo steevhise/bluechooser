@@ -11,15 +11,12 @@
     <label for="choice">choose one</label>
     <select name="choice" id="choice">
     <% devices.forEach(function(device) { %>
-    <option value="<%- device.name %>"><%- device.name %></option>
+            <option value="<%- device.name %>"><%- device.name %><% if(device.connected) {%>      • (connected)<% } %>%></option>
 
     <% }); %>
     </select>
     <input type="submit" value="connect"\>
 </form>
-
-
-<%= devices %>
 
 </body>
 </html>
