@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import adafruit_ssd1306
 import asyncio
 from sys import audit, addaudithook
+from discover import discover
 
 print("setting up the display...")
 
@@ -57,7 +58,7 @@ def show_wait(event, waitseconds):
 async def show_default():
 
   i = 0
- 
+
   addaudithook(show_wait)
 
   while True:
@@ -65,19 +66,22 @@ async def show_default():
         i += 1;
         # Draw a black filled box to clear the image.
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
-    
+
         cmd = "hostname -I | cut -d' ' -f1"
         IP = subprocess.check_output(cmd, shell=True).decode("utf-8")
         cmd = 'date +%r'
         clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    
+        btDevices = await discover()
+
+        # TODO: then find the one we're connected to, if any.
+
         draw.text((x, top + 0), clock, font=font, fill=255)
 
         # show the bluetooth device we're connected to.
-        # draw.text((x, top + 8), "Connected to: ", font=font, fill=255)
-    
+        # draw.text((x, top + 8), "BT device: " + device, font=font, fill=255)
+
         # show our ip address
-        draw.text((x, top + 16), "  IP: " + IP, font=font, fill=255)
+        draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
 
         # Display image.
         disp.image(image)
@@ -97,8 +101,8 @@ async def show_default():
         draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
         disp.image(image)
         disp.show()
-        time.sleep(3) 
-        result = await asyncio.sleep(0, "back to default image task!") 
+        time.sleep(3)
+        result = await asyncio.sleep(0, "back to default image task!")
         # print(result)
      except asyncio.CancelledError as e:   # this is catching when task finishes i think.
         print(" ")
@@ -107,7 +111,7 @@ async def show_default():
         print(i)
 
 def show(text):
-    
+
     # print("About to write " + text + " to the OLED...")
 
     wait_time = 0
