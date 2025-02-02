@@ -7,7 +7,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import adafruit_ssd1306
 import asyncio
 from sys import audit, addaudithook
-from discover import discover
+from pprint import pprint
+# from bleak import BleakScanner
+# from discover import discover
 
 print("setting up the display...")
 stop = False  # this is to make an event stop a while loop
@@ -47,7 +49,7 @@ x = 0
 # load a TTF font.  Make sure the .ttf font file is in the
 # same directory as the python script!
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
+font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 10)
 bigfont = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 17)
 
 # this makes us wait if a certain event happens
@@ -69,13 +71,27 @@ async def show_default():
 
   addaudithook(show_wait)
   addaudithook(show_resume)
+  try:
+     # btDevices = await BleakScanner.discover()
+     print("dumb")
+  except Exception as e:
+     print("something wrong with scan...")
+     print(e)
+  #else:
+  #   if btDevices:
+  #      for d in btDevices:
+  #         pprint(d)
+  #   else:
+  #       print("no bluetooth devices, i guess....")
+  finally:
+     print("ok...")
 
   while True:
      if stop:
         print(stop)
         await asyncio.sleep(0)
         continue
-     print(stop)
+     
      try:
         i += 1;
         # Draw a black filled box to clear the image.
@@ -90,17 +106,14 @@ async def show_default():
         cmd = 'date +%r'
         clock = subprocess.check_output(cmd, shell=True).decode("utf-8")
         print(clock)
-        btDevices = await discover()
-
-        # TODO: then find the one we're connected to, if any.
 
         draw.text((x, top + 0), clock, font=font, fill=255)
 
         # show the bluetooth device we're connected to.
-        # draw.text((x, top + 8), "BT device: " + device, font=font, fill=255)
+        draw.text((x, top + 11), "BT device: " + ' test ', font=font, fill=255)
 
         # show our ip address
-        draw.text((x, top + 16), "IP: " + IP, font=font, fill=255)
+        draw.text((x, top + 22), "IP: " + IP, font=font, fill=255)
 
         await asyncio.sleep(0)
         # Display image.

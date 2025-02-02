@@ -18,7 +18,7 @@ from display import show, show_default
 background_tasks = set()
 
 # but first set up all the stuff
-sound_cmd = "/usr/bin/rec -c 1 -r 8000 -b 8 -d hilbert equalizer 400 50h -120 sinc 500-3k vol 1 db | /usr/bin/aplay -c 1 &"
+sound_cmd = "/usr/bin/rec -c 1 -r 8000 -b 8 -d hilbert equalizer 400 50h -120 sinc 500-3k vol 6 db | /usr/bin/aplay -c 1 &"
 # sound_cmd = "/usr/bin/rec -c 1 -d sinc 1k-4k | /usr/bin/aplay -f cd -c 1 -t wav &"
 print(sound_cmd)
 
@@ -108,7 +108,7 @@ async def main():
    mic_task = asyncio.create_task(microphone_setup(), name="mic-setup")
   
    # run other stuff outside the event loop?
-   await asyncio.sleep(1)
+   await asyncio.sleep(1)   # why did i put that there?
 
 # asyncio.run(main()) 
 with asyncio.Runner(debug=False) as runner:
