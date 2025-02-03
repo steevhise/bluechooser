@@ -7,6 +7,7 @@ import os
 import subprocess
 import signal
 import asyncio
+import bluetooth
 from pprint import pprint
 from display import show, show_default
 
@@ -33,6 +34,7 @@ def signal_handler(signum, frame):
     print(f'Handling signal {signum} ({signal.Signals(signum).name}).')
 
     mic_led.blink(on_time=0.2, off_time=0.3, n=10, background=True)
+    show("software shutdown")
     sleep(2)
     #  shutdown the mic stream.
     micTask = findInSet('streamTask')
@@ -95,6 +97,23 @@ def findInSet(name="show-default"):
    
    return None
 
+async def bluetooth_stuff():
+   print("discovering bluetooth devices. Might take a moment..")
+   await asyncio.sleep(0)
+   nearby_devices = bluetooth.discover_devices(duration=15, lookup_names=True,
+                                            #flush_cache=False, lookup_class=True)
+                                            flush_cache=False)
+   await asyncio.sleep(0)
+   print("Found {} devices".format(len(nearby_devices)))
+
+   pprint(nearby_devices)
+
+   for addr, name in nearby_devices:
+     try:
+        print("   {} - {}".format(addr, name))
+     except UnicodeEncodeError:
+        print("   {} - {}".format(addr, name.encode("utf-8", "replace")))
+
 # some setup - just to show this is working we flash the mic led.
 mic_led.on()
 sleep(2)
@@ -103,12 +122,12 @@ mic_led.off()
 async def main():
    ptt_button.when_held = mic_on
    ptt_button.when_released = mic_off  # reference to the function (not run the function)
-   # The OLED screen has to be async.
+        
    oled_task = asyncio.create_task(show_default(), name="show-default")
    mic_task = asyncio.create_task(microphone_setup(), name="mic-setup")
+   bt_task = asyncio.create_task(bluetooth_stuff(), name="bt-task")
   
-   # run other stuff outside the event loop?
-   await asyncio.sleep(1)   # why did i put that there?
+   await asyncio.sleep(1)   # why did i put this here?
 
 # asyncio.run(main()) 
 with asyncio.Runner(debug=False) as runner:
