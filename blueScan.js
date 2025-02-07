@@ -56,8 +56,16 @@ const sleep = async (time) => {
     return new Promise((resolve) => setTimeout(() => { return resolve('times up!')}, time));
 }
 
+// find which device is connected
+const findConnected = async () => {
+    const devices = await blueScan()
+    return devices.find((entry) => { return entry.connected === true }).name
+}
+
+
 exports.blueScan = blueScan;
 exports.sleep = sleep;
+exports.findConnected = findConnected;
 
  // how you'd use this...
 /*

@@ -12,7 +12,7 @@ const timeout = 5;  // in seconds
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({extended: false}));
 // for timing out the requests, but the problem is if bluetooth is busy then it complains.
-// we dont need this as we're oding the timeout ourselves
+// we don't need this as we're doing the timeout ourselves
 /*app.use((req, res, next) => {
     res.setTimeout(9000, ()=>{
         console.log('Request has timed out.');
