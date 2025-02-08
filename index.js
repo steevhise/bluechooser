@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 const router = express.Router();
 const {blueScan, sleep} = require('./blueScan');
-const timeout = 5;  // in seconds
+const fs = require('node:fs/promises');
+const timeout =8;  // in seconds
 
 // Define routes and middleware here
 // we basically just want 2 routes:
@@ -32,12 +33,30 @@ router.route('/')
     .post(async function (req,res) {
         const data = req.body;
         console.log('POST request', data.choice);
-        let r = await Promise.race([sleep(timeout * 1000), blueScan(data.choice)])
+        let r;
+        try {
+            r = await Promise.race([sleep(timeout * 1000), blueScan(data.choice)])
+        } catch(e) {
+            console.log('problem with bluescan:', e)
+            r = 'error'
+        }
         console.log(r);
-        if (r === 'times up!') {
+        if (r === 'timeout' || r === 'error') {
             res.locals.message = `Connection to ${data.choice} has timed out!`;
         } else {
             res.locals.message = `Connection to ${data.choice} Complete!`;  // TODO: or catch error/timeout?
+                       // write data to a file to save what we're supposed to be connected to
+                       const found = r.find((entry) => { return entry.name === data.choice })
+                       const content = { address: found.id,
+                                               name: found.name};
+                       const json = JSON.stringify(content);
+                       try {
+                           await fs.writeFile('/home/steev/data/bluetooth.json', json);
+                           console.log("json is" ,json);
+                            } catch(e) {
+                              console.log('problem with writing file: ', e);
+                           }
+
         }
         res.render('results');
         res.end();
