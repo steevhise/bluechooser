@@ -100,8 +100,11 @@ def findInSet(name="show-default"):
 async def bluetooth_stuff():
    print("discovering bluetooth devices. Might take a moment..")
    await asyncio.sleep(0)
+   # discoverer = bluetooth.DeviceDiscoverer()
+   # we're supposed to subclass DeviceDiscoverer.
+#   nearby_devices = discoverer.find_devices(lookup_names=True,duration=20)
    nearby_devices = bluetooth.discover_devices(duration=15, lookup_names=True,
-                                            #flush_cache=False, lookup_class=True)
+#                                            #flush_cache=False, lookup_class=True)
                                             flush_cache=False)
    await asyncio.sleep(0)
    print("Found {} devices".format(len(nearby_devices)))
