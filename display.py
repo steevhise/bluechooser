@@ -71,33 +71,19 @@ async def show_default():
 
   addaudithook(show_wait)
   addaudithook(show_resume)
-  try:
-     # btDevices = await BleakScanner.discover()
-     print("dumb")
-  except Exception as e:
-     print("something wrong with scan...")
-     print(e)
-  #else:
-  #   if btDevices:
-  #      for d in btDevices:
-  #         pprint(d)
-  #   else:
-  #       print("no bluetooth devices, i guess....")
-  finally:
-     print("ok...")
 
   while True:
      if stop:
         print(stop)
         await asyncio.sleep(0)
         continue
-     
+
      try:
-        i += 1;
+        i += 1
         # Draw a black filled box to clear the image.
         await asyncio.sleep(0)
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
-   
+
         # give lots of chances for other process to update.
         await asyncio.sleep(0)
 
@@ -110,6 +96,7 @@ async def show_default():
         draw.text((x, top + 0), clock, font=font, fill=255)
 
         # show the bluetooth device we're connected to.
+        # TODO: read it from the file saved by the node server
         draw.text((x, top + 11), "BT device: " + ' test ', font=font, fill=255)
 
         # show our ip address
@@ -126,7 +113,7 @@ async def show_default():
         print(i,"---",i%9)
         if i%9 != 0:
             await asyncio.sleep(0)
-            continue 
+            continue
 
         # but sometimes cycle to the next one.
         print("showing 2nd screen...")
