@@ -46,7 +46,7 @@ def signal_handler(signum, frame):
 
 my_sigs = {signal.SIGTERM, signal.SIGINT}
 for sig in my_sigs:
-    signal.signal(sig, signal_handler)  
+    signal.signal(sig, signal_handler)
 
 
 async def microphone_setup():
@@ -54,7 +54,7 @@ async def microphone_setup():
    print('muting  mic ...')
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 off",shell=True)
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 0", shell=True)
-   
+
    # make sure we start with the light off
    mic_led.off()
    # start sound stream from mic to bluetooth, and just let it run
@@ -66,8 +66,8 @@ async def microphone_setup():
 def mic_on():
    print('dialing!')   # this should only happen once per "dial"
    mic_led.blink(off_time=.01, on_time=1, n=10, background=True)  # background makes it async
-   
-   # unmute the microphone 
+
+   # unmute the microphone
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 on",shell=True)
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 25", shell=True)
    print("mic is live!")
@@ -94,7 +94,7 @@ def findInSet(name="show-default"):
    for task in background_tasks:
        if task.get_name() == name:
            return task
-   
+
    return None
 
 # read in file that has the bluetooth device we're supposed to be on, 
@@ -120,7 +120,6 @@ def bluetooth_stuff():
    # otherwise... TODO: try connecting.
    # return "none"
 
-
 # some setup - just to show this is working we flash the mic led.
 mic_led.on()
 sleep(2)
@@ -137,7 +136,7 @@ async def main():
   
    await asyncio.sleep(1)   # why did i put this here? hmm
 
-# asyncio.run(main()) 
+# asyncio.run(main())
 with asyncio.Runner(debug=False) as runner:
     loop = runner.get_loop()
     runner.run(main())

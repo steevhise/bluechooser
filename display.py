@@ -77,13 +77,13 @@ async def show_default(btdevice=' '):
         print(stop)
         await asyncio.sleep(0)
         continue
-     
+
      try:
-        i += 1;
+        i += 1
         # Draw a black filled box to clear the image.
         await asyncio.sleep(0)
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
-   
+
         # give lots of chances for other process to update.
         await asyncio.sleep(0)
 
@@ -113,7 +113,7 @@ async def show_default(btdevice=' '):
         print(i,"---",i%9)
         if i%9 != 0:
             await asyncio.sleep(0)
-            continue 
+            continue
 
         # but sometimes cycle to the next one.
         print("showing 2nd screen...")
