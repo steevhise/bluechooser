@@ -7,7 +7,7 @@ import os
 import subprocess
 import signal
 import asyncio
-import bluetooth
+import json
 from pprint import pprint
 from display import show, show_default
 
@@ -97,25 +97,29 @@ def findInSet(name="show-default"):
    
    return None
 
-async def bluetooth_stuff():
-   print("discovering bluetooth devices. Might take a moment..")
-   await asyncio.sleep(0)
-   # discoverer = bluetooth.DeviceDiscoverer()
-   # we're supposed to subclass DeviceDiscoverer.
-#   nearby_devices = discoverer.find_devices(lookup_names=True,duration=20)
-   nearby_devices = bluetooth.discover_devices(duration=15, lookup_names=True,
-#                                            #flush_cache=False, lookup_class=True)
-                                            flush_cache=False)
-   await asyncio.sleep(0)
-   print("Found {} devices".format(len(nearby_devices)))
+# read in file that has the bluetooth device we're supposed to be on, 
+# and make sure the one we're really connected to is the same.
+def bluetooth_stuff():
+   print("bluetooth stuff. Might take a moment..")
+   # now look in the file that is saved by the node web interface code.
+   with open("/home/steev/data/bluetooth.json") as json_data:
+       d = json.load(json_data)
+       json_data.close()
+       pprint(d)
 
-   pprint(nearby_devices)
+   connected = subprocess.getoutput("bluetoothctl info " + d['address'] + " | grep -i connected | cut -f 2 -d' '")
+   print("connected? ", connected)
 
-   for addr, name in nearby_devices:
-     try:
-        print("   {} - {}".format(addr, name))
-     except UnicodeEncodeError:
-        print("   {} - {}".format(addr, name.encode("utf-8", "replace")))
+   if(connected == 'no'):
+       reconn = subprocess.getoutput("bluetoothctl connect " + d['address'])
+       print(reconn)
+
+   # if(d['name'] == bt_current):
+   return d['name']
+
+   # otherwise... TODO: try connecting.
+   # return "none"
+
 
 # some setup - just to show this is working we flash the mic led.
 mic_led.on()
@@ -125,12 +129,13 @@ mic_led.off()
 async def main():
    ptt_button.when_held = mic_on
    ptt_button.when_released = mic_off  # reference to the function (not run the function)
-        
-   oled_task = asyncio.create_task(show_default(), name="show-default")
+   bt_stuff = bluetooth_stuff()
+       
+   print('connected to',  bt_stuff, type(bt_stuff))
+   oled_task = asyncio.create_task(show_default(bt_stuff), name="show-default")
    mic_task = asyncio.create_task(microphone_setup(), name="mic-setup")
-   bt_task = asyncio.create_task(bluetooth_stuff(), name="bt-task")
   
-   await asyncio.sleep(1)   # why did i put this here?
+   await asyncio.sleep(1)   # why did i put this here? hmm
 
 # asyncio.run(main()) 
 with asyncio.Runner(debug=False) as runner:

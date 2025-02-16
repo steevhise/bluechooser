@@ -65,26 +65,12 @@ def show_resume(event, waitseconds):
       print("recieved show resume event")
       stop = False
 
-async def show_default():
+async def show_default(btdevice=' '):
 
   i = 0
 
   addaudithook(show_wait)
   addaudithook(show_resume)
-  try:
-     # btDevices = await BleakScanner.discover()
-     print("dumb")
-  except Exception as e:
-     print("something wrong with scan...")
-     print(e)
-  #else:
-  #   if btDevices:
-  #      for d in btDevices:
-  #         pprint(d)
-  #   else:
-  #       print("no bluetooth devices, i guess....")
-  finally:
-     print("ok...")
 
   while True:
      if stop:
@@ -109,8 +95,9 @@ async def show_default():
 
         draw.text((x, top + 0), clock, font=font, fill=255)
 
+        print(btdevice)
         # show the bluetooth device we're connected to.
-        draw.text((x, top + 11), "BT device: " + ' test ', font=font, fill=255)
+        draw.text((x, top + 11), "BT device: " + btdevice, font=font, fill=255)
 
         # show our ip address
         draw.text((x, top + 22), "IP: " + IP, font=font, fill=255)
