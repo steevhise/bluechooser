@@ -53,7 +53,7 @@ const blueScan = async (target = '') => {
 }
 
 const sleep = async (time) => {
-    return new Promise((resolve) => setTimeout(() => { return resolve('times up!')}, time));
+    return new Promise((resolve) => setTimeout(() => { return resolve('timeout')}, time));
 }
 
 // find which device is connected
