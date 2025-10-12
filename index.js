@@ -73,7 +73,9 @@ router.route('/')
 app.use(router);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, (err) => {
+const HOST = process.env.HOST || 'localhost';
+console.log(HOST);
+app.listen(PORT, HOST, (err) => {
     if (err) throw err;
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on ${HOST} port ${PORT}`);
 });
