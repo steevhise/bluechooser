@@ -27,28 +27,36 @@ router.route('/')
     .get(async function (req, res) {
         console.log("GET request called");
         res.locals.devices = await blueScan();
+	console.log(res.locals);
         res.render('form');
         res.end();
     })
     .post(async function (req,res) {
         const data = req.body;
-        console.log('POST request', data.choice);
+        console.log('POST request', data.choice, data.choice2);
         let r;
         try {
-            r = await Promise.race([sleep(timeout * 1000), blueScan(data.choice)])
+            r = await Promise.race([sleep(timeout * 1000), blueScan(data.choice, data.choice2)])
         } catch(e) {
             console.log('problem with bluescan:', e)
             r = 'error'
         }
         console.log(r);
-        if (r === 'timeout' || r === 'error') {
-            res.locals.message = `Connection to ${data.choice} has timed out!`;
+
+        if (r === 'timeout' || r === 'error' || !r) {
+            res.locals.message = `Connection to ${data.choice} and/or ${data.choice2} has timed out!`;
         } else {
             res.locals.message = `Connection to ${data.choice} Complete!`;  // TODO: or catch error/timeout?
                        // write data to a file to save what we're supposed to be connected to
                        const found = r.find((entry) => { return entry.name === data.choice })
-                       const content = { address: found.id,
-                                               name: found.name};
+                       const found2 = r.find((entry) => { return entry.name === data.choice2 })
+                       const content = [
+			       { address: found.id,
+                                 name: found.name}];
+
+		       if(found2) {
+			       content.push({ address: found2.id, name: found2.name});
+		       }
                        const json = JSON.stringify(content);
                        try {
                            await fs.writeFile('/home/steev/data/bluetooth.json', json);
