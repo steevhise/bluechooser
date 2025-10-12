@@ -19,7 +19,7 @@ from display import show, show_default
 background_tasks = set()
 
 # but first set up all the stuff
-sound_cmd = "/usr/bin/rec -c 1 -r 8000 -b 8 -d hilbert equalizer 400 50h -120 sinc 500-3k vol 6 db | /usr/bin/paplay --channels=1 -d exo &"
+sound_cmd = "/usr/bin/rec -c 1 -r 8000 -b 8 -d hilbert equalizer 400 50h -120 sinc 500-3k vol 6 db | /usr/bin/aplay -c 1 &"
 # sound_cmd = "/usr/bin/rec -c 1 -d sinc 1k-4k | /usr/bin/aplay -f cd -c 1 -t wav &"
 print(sound_cmd)
 
@@ -59,14 +59,6 @@ async def microphone_setup():
    mic_led.off()
    # start sound stream from mic to bluetooth, and just let it run
    print('starting  mic stream ...')
-
-   # first, combine the 2 devices into one pseudodevice to send sound to.
-   subprocess.getoutput("pactl load-module module-combine-sink sink_name=exo")
-
-   # set that to the default device
-   subprocess.getoutput("pactl set-default-sink exo")
-
-   # now start the sound stream itself.
    stream_task = asyncio.create_task(asyncio.create_subprocess_shell(sound_cmd, stderr=asyncio.subprocess.DEVNULL), name="streamTask" )
    print("... done with microphone setup. stream started...")
    shutdown_button.when_held = shutdown
@@ -107,7 +99,6 @@ def findInSet(name="show-default"):
 
 # read in file that has the bluetooth device we're supposed to be on, 
 # and make sure the one we're really connected to is the same.
-# TODO: catch errors!
 def bluetooth_stuff():
    print("bluetooth stuff. Might take a moment..")
    # now look in the file that is saved by the node web interface code.
@@ -116,22 +107,15 @@ def bluetooth_stuff():
        json_data.close()
        pprint(d)
 
-   # now the file json is an array.
-   pprint(d[0])  
-   pprint(d[1])
-
-   speaker1 = d[0]['name']
-   speaker2 = d[1]['name']
-   connected = subprocess.getoutput("bluetoothctl info " + d[0]['address'] + " | grep -i connected | cut -f 2 -d:")
-   connected2 = subprocess.getoutput("bluetoothctl info " + d[1]['address'] + " | grep -i connected | cut -f 2 -d:")
-   print("connected? ", connected, connected2)
+   connected = subprocess.getoutput("bluetoothctl info " + d['address'] + " | grep -i connected | cut -f 2 -d' '")
+   print("connected? ", connected)
 
    if(connected == 'no'):
-       reconn = subprocess.getoutput("bluetoothctl connect " + d[0]['address'])
-       reconn = subprocess.getoutput("bluetoothctl connect " + d[1]['address'])
-       pprint(reconn)
+       reconn = subprocess.getoutput("bluetoothctl connect " + d['address'])
+       print(reconn)
 
-   return speaker1 + ' ' + speaker2;
+   # if(d['name'] == bt_current):
+   return d['name']
 
    # otherwise... TODO: try connecting.
    # return "none"
@@ -156,4 +140,5 @@ async def main():
 with asyncio.Runner(debug=False) as runner:
     loop = runner.get_loop()
     runner.run(main())
+
 

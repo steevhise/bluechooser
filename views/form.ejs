@@ -25,22 +25,13 @@
 </head>
 <body>
 You're connected to the Phonetercom. You can use this form to connect it to the bluetooth speakers you want to output sound to.
-<h2>Choose BlueTooth Devices to Connect to</h2>
+<h2>Choose BlueTooth Device to Connect to</h2>
 
 <form method="POST" enctype="application/x-www-form-urlencoded">
 
 	<span>
 		<label for="choice">choose speaker 1: </label>
     <select name="choice" id="choice">
-    <% devices.forEach(function(device) { %>
-            <option value="<%- device.name %>"><%- device.name %><% if(device.connected) {%>      • (connected)<% } %>%></option>
-
-    <% }); %>
-    </select>
-	</span>
-	<span>
-		<label for="choice">choose speaker 2: </label>
-    <select name="choice2" id="choice2">
     <% devices.forEach(function(device) { %>
             <option value="<%- device.name %>"><%- device.name %><% if(device.connected) {%>      • (connected)<% } %>%></option>
 
