@@ -5,6 +5,7 @@ const Debug = require('debug')('bluetooth');
 
 const blueScan = async (target = '') => {
 
+    Debug(await bluetooth.adapters());
     Debug('scanning for %s...', target)
     const deviceInfo = [];
     const adapter = await bluetooth.defaultAdapter()
@@ -46,7 +47,7 @@ const blueScan = async (target = '') => {
         }
     }
 
-    // Debug('devices: %o', deviceInfo);
+    Debug('devices: %o', deviceInfo);
     await adapter.stopDiscovery()
     //console.log('dev', device.device);
     return deviceInfo;

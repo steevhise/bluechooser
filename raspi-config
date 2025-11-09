@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# starts up special custom stuff for phone intercom
+cd /home/steev
+echo "starting bluechooser web interface."
+/usr/bin/node /home/steev/bluechooser/index.js &
+sleep 5s
+
+echo "starting phonetercom python code."
+nohup /home/steev/bluechooser/mic_live.py &
+sleep 5s
+
+echo "all done with phonetercom startup!"
+
+
+

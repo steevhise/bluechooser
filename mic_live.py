@@ -1,3 +1,5 @@
+#!/home/steev/env/bin/python3
+
 # this controls the PTT mic control, mic light, the shutdown switch and light
 # etc etc.
 
