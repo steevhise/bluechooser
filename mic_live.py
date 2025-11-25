@@ -20,7 +20,11 @@ from display import show, show_default
 
 background_tasks = set()
 
-# but first set up all the stuff
+# play a short soundfile to let users know startup is happening.
+# TODO: use 'play' with -v arg to adjust volume?
+play_cmd = "/usr/bin/aplay /home/steev/Rooster.wav"
+
+# then set up all the stuff
 sound_cmd = "/usr/bin/rec -c 1 -r 8000 -b 8 -d hilbert equalizer 400 50h -120 sinc 500-3k vol 6 db | /usr/bin/aplay -c 1 &"
 # sound_cmd = "/usr/bin/rec -c 1 -d sinc 1k-4k | /usr/bin/aplay -f cd -c 1 -t wav &"
 print(sound_cmd)
@@ -59,7 +63,11 @@ async def microphone_setup():
 
    # make sure we start with the light off
    mic_led.off()
-   # start sound stream from mic to bluetooth, and just let it run
+
+   # play the start sound.
+   play_task = asyncio.create_task(asyncio.create_subprocess_shell(play_cmd, stderr=asyncio.subprocess.DEVNULL), name="playfileTask" )
+   sleep(3)
+   # begin sound stream from mic to bluetooth, and just let it run
    print('starting  mic stream ...')
    stream_task = asyncio.create_task(asyncio.create_subprocess_shell(sound_cmd, stderr=asyncio.subprocess.DEVNULL), name="streamTask" )
    print("... done with microphone setup. stream started...")

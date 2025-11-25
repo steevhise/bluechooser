@@ -1,16 +1,21 @@
 #!/bin/bash
 
+echo "ok we're starting up phontercom shit..."
+
 # starts up special custom stuff for phone intercom
-cd /home/steev
-echo "starting bluechooser web interface."
-/usr/bin/node /home/steev/bluechooser/index.js &
+cd /home/steev/bluechooser
+echo "starting bluechooser web interface." > /home/steev/phone.log
+/usr/bin/node ./index.js >> /home/steev/phone.log &
 sleep 5s
 
-echo "starting phonetercom python code."
-nohup /home/steev/bluechooser/mic_live.py &
+echo "starting phonetercom python code." >> /home/steev/phone.log
+sudo -u steev  -i nohup bluechooser/mic_live.py >> /home/steev/phone.log &
+
+# sudo -u steev -i -D /home/steev/bluechooser nohup ./mic_live.py >> /home/steev/phone.log &
 sleep 5s
 
-echo "all done with phonetercom startup!"
+/usr/bin/date >> /home/steev/phone.log 
+echo "all done with phonetercom startup!" >> /home/steev/phone.log
 
 
 
