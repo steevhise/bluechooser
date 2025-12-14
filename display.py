@@ -74,7 +74,7 @@ async def show_default(btdevice=' '):
 
   while True:
      if stop:
-        print(stop)
+        # print(stop)
         await asyncio.sleep(0)
         continue
 
@@ -110,20 +110,20 @@ async def show_default(btdevice=' '):
         await asyncio.sleep(1)
 
         # x times out of y we just start over here.
-        print(i,"---",i%9)
+        # print(i,"---",i%9)
         if i%9 != 0:
             await asyncio.sleep(0)
             continue
 
         # but sometimes cycle to the next one.
-        print("showing 2nd screen...")
+        # print("showing 2nd screen...")
         await asyncio.sleep(0)
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
         draw.text((x, top + 0), "EXO ROAST CO", font=bigfont, fill=255)
         disp.image(image)
         await asyncio.sleep(0)
         disp.show()
-        time.sleep(3)
+        time.sleep(2)
         result = await asyncio.sleep(0, "back to default image task!")
         # print(result)
      except asyncio.CancelledError as e:   # this is catching when task finishes i think.

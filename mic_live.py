@@ -21,7 +21,6 @@ from display import show, show_default
 background_tasks = set()
 
 # play a short soundfile to let users know startup is happening.
-# TODO: use 'play' with -v arg to adjust volume?
 play_cmd = "/usr/bin/aplay /home/steev/Rooster.wav"
 
 # then set up all the stuff
@@ -79,7 +78,7 @@ def mic_on():
 
    # unmute the microphone
    subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Switch',numid=7 on",shell=True)
-   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 25", shell=True)
+   subprocess.run("amixer -c 1 cset  iface=MIXER,name='Mic Capture Volume',numid=8 27", shell=True)
    print("mic is live!")
    show("mic is ON")
    # audit('showresume')
