@@ -7,7 +7,7 @@
         body {
             margin: 50px;
             font-family: Verdana, Arial, Helvetica, sans-serif;
-            font-size: 16px;
+            font-size: clamp(1.5rem, 9cqw, 2.5rem);
             background-color: azure;
         }
 
@@ -17,28 +17,33 @@
 	}
 
 	input {
-	    width: 10em;
+	    font-size: 6cqw;
+	    padding: 1px;
 	}
+
+	select {
+	    font-size: 5cqw;
+        }
 
 	
     </style>
 </head>
 <body>
-	You're connected to the <strong>Phonetercom</strong>. You can use this form to connect it to the bluetooth speaker(s) you want to output sound to.
-<h2>Choose BlueTooth Device to Connect to</h2>
+	Hello. You're connected to the <strong>Phonetercom</strong>. You can use this form to connect it to the bluetooth speaker(s) you want to output sound to.
+<h2>Choose Device to Connect to</h2>
 
 <form method="POST" enctype="application/x-www-form-urlencoded">
 
 	<span>
-		<label for="choice">choose speaker: </label>
-    <select name="choice" id="choice">
-    <% devices.forEach(function(device) { %>
-            <option value="<%- device.name %>"><%- device.name %><% if(device.connected) {%>      • (connected)<% } %>%></option>
+		<label for="choice">speaker: </label>
+    		<select name="choice" id="choice">
+    		<% devices.forEach(function(device) { %>
+            	<option value="<%- device.name %>"><%- device.name %><% if(device.connected) {%>      • (connected)<% } %>%></option>
 
     <% }); %>
     </select>
-    (make sure speaker is on)
 	</span>
+    (make sure speaker is on)
     <input type="submit" value="connect" \>
 </form>
 
